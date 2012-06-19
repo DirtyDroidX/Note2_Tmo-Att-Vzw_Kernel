@@ -897,9 +897,9 @@ ssize_t store_UV_uV_table(struct cpufreq_policy *policy,
 		}
 	}
 	return count;
-}
+}		
 
-ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
+ssize_t store_UV_mV_table(struct cpufreq_policy *policy, 
 				 const char *buf, size_t count) {
 
 	unsigned int ret = -EINVAL;
@@ -926,9 +926,9 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 					t[i] -= rest;
 			}
 
-			if (t[i] > CPU_UV_MV_MAX)
+			if (t[i] > CPU_UV_MV_MAX) 
 				t[i] = CPU_UV_MV_MAX;
-			else if (t[i] < CPU_UV_MV_MIN)
+			else if (t[i] < CPU_UV_MV_MIN) 
 				t[i] = CPU_UV_MV_MIN;
 
 			while(exynos_info->freq_table[i+invalid_offset].frequency==CPUFREQ_ENTRY_INVALID)
