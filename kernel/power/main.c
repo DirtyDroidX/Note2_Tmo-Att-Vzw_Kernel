@@ -543,56 +543,6 @@ power_attr(cpufreq_max_limit);
 power_attr(cpufreq_min_limit);
 #endif /* CONFIG_DVFS_LIMIT */
 
-#ifdef CONFIG_GPU_LOCK
-static int gpu_lock_val;
-DEFINE_MUTEX(gpu_lock_mutex);
-
-static ssize_t gpu_lock_show(struct kobject *kobj,
-					struct kobj_attribute *attr,
-					char *buf)
-{
-	return sprintf(buf, "%d\n", gpu_lock_val);
-}
-
-static ssize_t gpu_lock_store(struct kobject *kobj,
-					struct kobj_attribute *attr,
-					const char *buf, size_t n)
-{
-	int val;
-	ssize_t ret = -EINVAL;
-
-	mutex_lock(&gpu_lock_mutex);
-
-	if (sscanf(buf, "%d", &val) != 1) {
-		pr_info("%s: Invalid mali lock format\n", __func__);
-		goto out;
-	}
-
-	if (val == 0) {
-		if (gpu_lock_val != 0) {
-			exynos_gpufreq_unlock();
-			gpu_lock_val = 0;
-		} else {
-			pr_info("%s: Unlock request is ignored\n", __func__);
-		}
-	} else if (val == 1) {
-		if (gpu_lock_val == 0) {
-			exynos_gpufreq_lock();
-			gpu_lock_val = val;
-		} else {
-			pr_info("%s: Lock request is ignored\n", __func__);
-		}
-	} else {
-		pr_info("%s: Lock request is invalid\n", __func__);
-	}
-
-	ret = n;
-out:
-	mutex_unlock(&gpu_lock_mutex);
-	return ret;
-}
-power_attr(gpu_lock);
-#endif
 
 #ifdef CONFIG_ROTATION_BOOSTER_SUPPORT
 static inline void rotation_booster_on(void)
@@ -664,6 +614,7 @@ power_attr(rotation_booster);
 static inline void rotation_booster_on(void){}
 static inline void rotation_booster_off(void){}
 #endif /* CONFIG_ROTATION_BOOSTER_SUPPORT */
+
 
 static struct attribute * g[] = {
 	&state_attr.attr,
