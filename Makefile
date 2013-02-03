@@ -1,7 +1,7 @@
 VERSION = 3
 PATCHLEVEL = 0
 SUBLEVEL = 61
-EXTRAVERSION =-SaberKernel_11.5
+EXTRAVERSION =-SaberKernel_12.11
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
