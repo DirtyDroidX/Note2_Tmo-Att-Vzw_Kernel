@@ -66,9 +66,7 @@ static struct workqueue_struct  *tmu_monitor_wq;
 
 static DEFINE_MUTEX(tmu_lock);
 
-
-#if (defined(CONFIG_CPU_EXYNOS4212) || defined(CONFIG_CPU_EXYNOS4412)) \
-	&& defined(CONFIG_VIDEO_MALI400MP)
+#if (defined(CONFIG_CPU_EXYNOS4212) || defined(CONFIG_CPU_EXYNOS4412))
 #define CONFIG_TC_VOLTAGE /* Temperature compensated voltage */
 #endif
 
@@ -499,7 +497,6 @@ static int exynos_tc_volt(struct s5p_tmu_info *info, int enable)
 		if (ret)
 			goto err_lock;
 #endif
-
 	} else {
 		exynos_cpufreq_lock_free(DVFS_LOCK_ID_TMU);
 #ifdef CONFIG_BUSFREQ_OPP
@@ -507,7 +504,6 @@ static int exynos_tc_volt(struct s5p_tmu_info *info, int enable)
 		if (ret)
 			goto err_unlock;
 #endif
-
 	}
 	usage = enable;
 	pr_info("TMU: %s is ok!\n", enable ? "lock" : "unlock");
@@ -1233,7 +1229,6 @@ static int __devinit s5p_tmu_probe(struct platform_device *pdev)
 		if (exynos_tc_volt(info, 1) < 0)
 			pr_err("TMU: lock error!\n");
 	}
-
 #endif
 
 	/* initialize tmu_state */

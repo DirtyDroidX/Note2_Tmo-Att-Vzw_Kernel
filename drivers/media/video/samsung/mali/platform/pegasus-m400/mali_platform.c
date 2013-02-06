@@ -51,6 +51,8 @@
 #define CLK_DIV_STAT_G3D 	0x1003C62C
 #define CLK_DESC 			"clk-divider-status"
 
+#define MALI_BOTTOMLOCK_VOL	900000
+
 typedef struct mali_runtime_resumeTag{
 	int clk;
 	int vol;
@@ -74,7 +76,7 @@ int mali_gpu_clk = 266;
 int mali_gpu_vol = 900000;
 
 #if MALI_DVFS_ENABLED
-#define MALI_DVFS_DEFAULT_STEP 6
+#define MALI_DVFS_DEFAULT_STEP 0
 #endif
 
 int  gpu_power_state;
@@ -102,6 +104,10 @@ extern struct platform_device s5pv310_device_pd[];
 extern struct platform_device exynos4_device_pd[];
 #endif
 #endif
+
+/*This code for reference value of GPU activation*/
+int activity_index = -1;
+EXPORT_SYMBOL(activity_index);
 
 mali_io_address clk_register_map=0;
 
@@ -146,7 +152,7 @@ void mali_regulator_enable(void)
 }
 
 void mali_regulator_set_voltage(int min_uV, int max_uV)
-{	
+{
 	int voltage;
 
 	_mali_osk_lock_wait(mali_dvfs_lock, _MALI_OSK_LOCKMODE_RW);
@@ -156,6 +162,7 @@ void mali_regulator_set_voltage(int min_uV, int max_uV)
 		MALI_DEBUG_PRINT(1, ("error on mali_regulator_set_voltage : g3d_regulator is null\n"));
 		return;
 	}
+
     MALI_DEBUG_PRINT(2, ("= regulator_set_voltage: %d, %d \n",min_uV, max_uV));
 
 #if MALI_TIMELINE_PROFILING_ENABLED
@@ -475,16 +482,15 @@ static _mali_osk_errcode_t enable_mali_clocks(void)
 	int err;
 	err = clk_enable(mali_clock);
 	MALI_DEBUG_PRINT(3,("enable_mali_clocks mali_clock %p error %d \n", mali_clock, err));
-	
+
 	// set clock rate
-	if (get_mali_dvfs_control_status() != 0 || mali_gpu_clk >= mali_runtime_resume.clk)
+//	if (get_mali_dvfs_control_status() != 0 || mali_gpu_clk >= mali_runtime_resume.clk)
 		mali_clk_set_rate(mali_gpu_clk, GPU_MHZ);
-	else {
-		mali_regulator_set_voltage(mali_runtime_resume.vol, mali_runtime_resume.vol);
-		mali_clk_set_rate(mali_runtime_resume.clk, GPU_MHZ);
-	}
-	if (mali_gpu_clk <= mali_runtime_resume.clk)
-		set_mali_dvfs_current_step(7);
+//	else {
+//		mali_regulator_set_voltage(mali_runtime_resume.vol, mali_runtime_resume.vol);
+//		mali_clk_set_rate(mali_runtime_resume.clk, GPU_MHZ);
+//	}
+//	if (mali_gpu_clk <= mali_runtime_resume.clk)	
 
 	MALI_SUCCESS;
 }
@@ -608,8 +614,6 @@ _mali_osk_errcode_t mali_platform_powerdown(u32 cores)
 		MALI_PRINT(("mali_platform_powerdown gpu_power_state == 0 and cores %x \n", cores));
 	}
 
-	//bPoweroff=1; //TODO
-
 	MALI_SUCCESS;
 }
 
@@ -632,13 +636,15 @@ _mali_osk_errcode_t mali_platform_powerup(u32 cores)
 		gpu_power_state = gpu_power_state | cores;
 	}
 
-	//bPoweroff=0; //TODO
-
 	MALI_SUCCESS;
 }
 
+/*This code for reference value of GPU activation*/
 void mali_gpu_utilization_handler(u32 utilization)
 {
+	/*printk("[TEST] GPU_UTILIZATION:%d per 1sec.", utilization);*/
+	activity_index = utilization;
+
 	if (bPoweroff==0)
 	{
 #if MALI_DVFS_ENABLED
